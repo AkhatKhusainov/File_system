@@ -3,53 +3,46 @@ from src.node import Node
 
 
 class Directory(Node):
+    """Directory node that can contain files and subdirectories.
+
+    Responsibilities:
+    - store children
+    - update metadata (`modified_at`) on structural changes
+    - provide aggregated `size`, listing of file paths, tree view, and dict representation
+    """
+
     def __init__(self, name: str, owner: str | None = None):
         super().__init__(name=name, owner=owner)
+        # Child nodes contained in this directory. Only File or Directory instances are allowed.
         self.children: list[File | Directory] = []
 
     # --- Mutations ---------------------------------------------------------
     def add(self, node: Node) -> None:
+        """Add a child node and update metadata.
+
+        - sets child's parent to this directory
+        - appends to children list
+        - touches this directory's modified_at
+        """
         if not isinstance(node, Node):
             raise TypeError("add() expects a Node")
-        # attach parent and add to children
         node.parent = self
         self.children.append(node)
         self._touch()
 
-    def remove(self, name: str) -> bool:
-        for index, child in enumerate(self.children):
-            if child.name == name:
-                del self.children[index]
-                self._touch()
-                return True
-        # try recursively
-        for child in self.children:
-            if isinstance(child, Directory) and child.remove(name):
-                self._touch()
-                return True
-        return False
-
-    # --- Queries -----------------------------------------------------------
-    def find(self, name: str) -> Node | None:
-        if self.name == name:
-            return self
-        for child in self.children:
-            if child.name == name:
-                return child
-            if isinstance(child, Directory):
-                found = child.find(name)
-                if found is not None:
-                    return found
-        return None
-
     # --- Introspection ----------------------------------------------------
     def size(self) -> int:
+        """Total size of all children (recursive)."""
         total = 0
         for child in self.children:
             total += child.size()
         return total
 
     def list_paths(self, prefix: str = "") -> list[str]:
+        """Return full paths of all files under this directory.
+
+        Directories themselves are not included in the output, only files.
+        """
         base = f"{prefix}/{self.name}" if prefix else self.name
         paths: list[str] = []
         for child in self.children:
@@ -57,6 +50,7 @@ class Directory(Node):
         return paths
 
     def tree(self, indent: int = 0) -> str:
+        """Pretty-printed multiline tree with sizes."""
         lines: list[str] = []
         lines.append((" " * indent) + f"{self.name}/ ({self.size()} B)")
         for child in self.children:
@@ -64,6 +58,7 @@ class Directory(Node):
         return "\n".join(lines)
 
     def to_dict(self) -> dict:
+        """Recursive, JSON-serializable representation of this directory."""
         return {
             "type": "dir",
             "name": self.name,
