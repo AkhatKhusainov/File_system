@@ -1,0 +1,10 @@
+from src.node import Node
+
+
+class File(Node):
+    def __init__(self, name, size_bytes=0):
+        super().__init__(name)
+        self.size_bytes = size_bytes
+
+    def size(self) -> int:
+        return self.size_bytes
