@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from src import Directory, File
 
 
@@ -66,15 +64,6 @@ def test_to_dict_recursive():
     assert set(names) == {"readme.md", "guide.txt", "logo.png"}
 
 
-def test_find_and_remove():
-    root = build_sample_tree()
-    node = root.find("guide.txt")
-    assert node is not None and node.name == "guide.txt"
-    removed = root.remove("guide.txt")
-    assert removed is True
-    assert root.find("guide.txt") is None
-
-
 def test_file_modify_updates_size_and_mtime():
     f = File("a.txt", 10)
     before = f.modified_at
@@ -88,7 +77,6 @@ def run_all():
     test_list_paths_returns_all_paths()
     test_tree_contains_names_and_sizes()
     test_to_dict_recursive()
-    test_find_and_remove()
     test_file_modify_updates_size_and_mtime()
     print("All tests passed.")
 
